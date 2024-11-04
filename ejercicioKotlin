@@ -1,0 +1,36 @@
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
+
+data class Product(
+    val id: Int,
+    val name: String,
+    val price: Double,
+    @SerializedName("currency") val currency: String,
+    @SerializedName("in_stock") val inStock: Boolean
+)
+
+fun fetchProducts() {
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://jsonkeeper.com/b/MX0A")
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) throw IOException("Error en la solicitud: $response")
+        
+        response.body?.string()?.let { jsonString ->
+            val productData = Gson().fromJson(jsonString, Map::class.java)
+            val products = productData["products"] as? List<Map<String, Any>>
+
+            products?.forEach { product ->
+                println("Producto: ${product["name"]}, Precio: ${product["price"]} ${product["currency"]}")
+            }
+        }
+    }
+}
+
+fun main() {
+    fetchProducts()
+}
